@@ -1,0 +1,189 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: ClusterClass
+metadata:
+  name: tkg-vsphere-default-v1.2.0-extended
+  namespace: tkg-system
+  annotations:
+    run.tanzu.vmware.com/resolve-tkr: ""
+spec:
+  controlPlane:
+    ref:
+      apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+      kind: KubeadmControlPlaneTemplate
+      name: tkg-vsphere-default-v1.2.0-kcp
+      namespace: tkg-system
+    machineInfrastructure:
+      ref:
+        kind: VSphereMachineTemplate
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        name: tkg-vsphere-default-v1.2.0-control-plane
+        namespace: tkg-system
+    namingStrategy:
+      template: '{{ .cluster.name }}-controlplane-{{ .random }}'
+    machineHealthCheck:
+      maxUnhealthy: 100%
+      nodeStartupTimeout: 20m
+      unhealthyConditions:
+      - type: Ready
+        status: Unknown
+        timeout: 5m
+      - type: Ready
+        status: "False"
+        timeout: 12m
+  infrastructure:
+    ref:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: VSphereClusterTemplate
+      name: tkg-vsphere-default-v1.2.0-cluster
+      namespace: tkg-system
+  workers:
+    machineDeployments:
+    - class: tkg-worker
+      template:
+        bootstrap:
+          ref:
+            kind: KubeadmConfigTemplate
+            apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+            name: tkg-vsphere-default-v1.2.0-md-config
+            namespace: tkg-system
+        infrastructure:
+          ref:
+            kind: VSphereMachineTemplate
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            name: tkg-vsphere-default-v1.2.0-worker
+            namespace: tkg-system
+      machineHealthCheck:
+        maxUnhealthy: 100%
+        nodeStartupTimeout: 20m
+        unhealthyConditions:
+        - type: Ready
+          status: Unknown
+          timeout: 5m
+        - type: Ready
+          status: "False"
+          timeout: 12m
+    - class: tkg-worker-windows
+      template:
+        bootstrap:
+          ref:
+            kind: KubeadmConfigTemplate
+            apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+            name: tkg-vsphere-default-v1.2.0-md-config
+            namespace: tkg-system
+        infrastructure:
+          ref:
+            kind: VSphereMachineTemplate
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            name: tkg-vsphere-default-v1.2.0-worker
+            namespace: tkg-system
+      machineHealthCheck:
+        maxUnhealthy: 100%
+        nodeStartupTimeout: 20m
+        unhealthyConditions:
+        - type: Ready
+          status: Unknown
+          timeout: 5m
+        - type: Ready
+          status: "False"
+          timeout: 12m
+  patches:
+  - external:
+      discoverVariablesExtension: discover-variables.tkg-runtime-extension
+      generateExtension: generate-patches.tkg-runtime-extension
+      validateExtension: validate-topology.tkg-runtime-extension
+      settings:
+        flavor: tkg
+        version: v1.2.0
+    name: tkg-official-patch
+  - name: etcdencrypt
+    enabledIf: '{{ not (empty .encryptionKey) }}'
+    definitions:
+    - selector:
+        apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+        kind: KubeadmControlPlaneTemplate
+        matchResources:
+          controlPlane: true
+      jsonPatches:
+      - op: add
+        path: /spec/template/spec/kubeadmConfigSpec/clusterConfiguration/apiServer/extraArgs/encryption-provider-config
+        value: /etc/kubernetes/encryption-config.yaml
+      - op: add
+        path: /spec/template/spec/kubeadmConfigSpec/clusterConfiguration/apiServer/extraVolumes/-
+        value:
+          hostPath: /etc/kubernetes/encryption-config.yaml
+          mountPath: /etc/kubernetes/encryption-config.yaml
+          name: encryption-config
+          pathType: File
+          readOnly: true
+      - op: add
+        path: /spec/template/spec/kubeadmConfigSpec/files/-
+        valueFrom:
+          template: |
+            content: |
+              apiVersion: apiserver.config.k8s.io/v1
+              kind: EncryptionConfiguration
+              resources:
+                - resources:
+                    - secrets
+                  providers:
+                    - aescbc:
+                        keys:
+                          - name: key1
+                            secret: {{ .encryptionKey }}
+                    - identity: {}
+            owner: root:root
+            path: /etc/kubernetes/encryption-config.yaml
+            permissions: "0644"
+  - name: nfs
+    enabledIf: '{{ .nfsCommon }}'
+    definitions:
+    - selector:
+        apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+        kind: KubeadmConfigTemplate
+        matchResources:
+          machineDeploymentClass:
+            names:
+            - tkg-worker
+      jsonPatches:
+      - op: add
+        path: /spec/template/spec/preKubeadmCommands/-
+        value: |
+          sudo add-apt-repository -s https://mirrors.bloomu.edu/ubuntu/ jammy main [mirrors.bloomu.edu] -y && \
+          sudo apt update -y && \
+          sudo apt-get install -y libnfsidmap1=1:2.6.1-1ubuntu1 --allow-downgrades && \
+          sudo apt-get install -y nfs-common --allow-change-held-packages
+  - name: secondNIC
+    enabledIf: '{{ not (empty .secondNIC) }}'
+    definitions:
+    - selector:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: VSphereMachineTemplate
+        matchResources:
+          machineDeploymentClass:
+            names:
+            - tkg-worker
+      jsonPatches:
+      - op: add
+        path: /spec/template/spec/network/devices/-
+        valueFrom:
+          template: '{dhcp4: true, networkName: /vc01/network/{{ .secondNIC }} }'
+  variables:
+  - name: encryptionKey
+    required: false
+    schema:
+      openAPIV3Schema:
+        type: string
+        description: "AESCBC Encryption string to be used for etcd encryption. \nTo generate, run: \"head -c 32 /dev/urandom|base64\"\n"
+        example: 7dwUtOMdt+6IO8cZwJhO0HzZuEm1zeiw+s18FOEwD1U=
+  - name: nfsCommon
+    required: false
+    schema:
+      openAPIV3Schema:
+        type: boolean
+        default: false
+  - name: secondNIC
+    required: false
+    schema:
+      openAPIV3Schema:
+        type: string
+        description: Name of the second network interface device

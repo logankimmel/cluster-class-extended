@@ -1,0 +1,1046 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tkg-variables-v1.2.0
+  namespace: tkg-system
+data:
+  variables: |
+    - name: TKR_DATA
+      required: false
+      schema:
+        openAPIV3Schema:
+          additionalProperties:
+            description: TKR_DATA_Item contains information about specific tkr, such as
+              core image locations, common labels, node image references.
+            properties:
+              kubernetesSpec:
+                description: KubernetesSpec
+                properties:
+                  coredns:
+                    description: coredns image location
+                    properties:
+                      imageRepository:
+                        description: image repository
+                        type: string
+                      imageTag:
+                        description: image tag
+                        type: string
+                    type: object
+                  etcd:
+                    description: etcd image location
+                    properties:
+                      imageRepository:
+                        description: image repository
+                        type: string
+                      imageTag:
+                        description: image tag
+                        type: string
+                    type: object
+                  imageRepository:
+                    description: image repository
+                    type: string
+                  kube-vip:
+                    description: kubevip image location
+                    properties:
+                      imageRepository:
+                        description: image repository
+                        type: string
+                      imageTag:
+                        description: image tag
+                        type: string
+                    type: object
+                  pause:
+                    description: pause image location
+                    properties:
+                      imageRepository:
+                        description: image repository
+                        type: string
+                      imageTag:
+                        description: image tag
+                        type: string
+                    type: object
+                  version:
+                    description: kubernetes version
+                    type: string
+                required:
+                - coredns
+                - etcd
+                - version
+                type: object
+              labels:
+                additionalProperties:
+                  type: string
+                description: common labels
+                type: object
+              osImageRef:
+                additionalProperties:
+                  type: string
+                description: OSImageRef is about the node image reference
+                type: object
+            type: object
+          description: TKR_DATA contains information about tkr, such as image location
+            of pause/coredns etc.
+          type: object
+    - name: VSPHERE_WINDOWS_TEMPLATE
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: ""
+          description: VSPHERE_WINDOWS_TEMPLATE defines model for VSPHERE_WINDOWS_TEMPLATE.
+          type: string
+    - name: additionalFQDN
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: []
+          description: AdditionalFQDN defines model for AdditionalFQDN.
+          items:
+            type: string
+          type: array
+    - name: additionalImageRegistries
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: AdditionalImageRegistries defines the AdditionalImageRegistries
+            of the cluster.
+          items:
+            description: AdditionalImageRegistry defines model for AdditionalImageRegistry.
+            properties:
+              caCert:
+                type: string
+              host:
+                type: string
+              skipTlsVerify:
+                default: false
+                type: boolean
+            required:
+            - host
+            type: object
+          type: array
+    - name: apiServerEndpoint
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: ""
+          description: ApiServerEndpoint defines model for ApiServerEndpoint.
+          type: string
+    - name: apiServerEndpointTimeout
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: 8m0s
+          description: ApiServerEndpointTimeout defines the ApiServerEndpointTimeout of
+            the cluster.
+          type: string
+    - name: apiServerExtraArgs
+      required: false
+      schema:
+        openAPIV3Schema:
+          additionalProperties:
+            type: string
+          default: {}
+          description: ApiServerExtraArgs defines the ExtraArgs for ApiServer.
+          type: object
+    - name: apiServerPort
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: ApiServerPort defines the port of ApiServer.
+          type: integer
+    - name: auditLogging
+      required: false
+      schema:
+        openAPIV3Schema:
+          default:
+            enabled: false
+          description: AuditLogging defines the audit log flag for server.
+          properties:
+            enabled:
+              default: false
+              type: boolean
+          type: object
+    - name: aviAPIServerHAProvider
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: false
+          description: AviAPIServerHAProvider defines model for AviAPIServerHAProvider.
+          type: boolean
+    - name: cni
+      required: true
+      schema:
+        openAPIV3Schema:
+          default: antrea
+          description: CNI defines model for CNI.
+          type: string
+    - name: controlPlane
+      required: true
+      schema:
+        openAPIV3Schema:
+          description: ControlPlane defines the ControlPlane parameters for ApiServer.
+          properties:
+            machine:
+              properties:
+                customVMXKeys:
+                  additionalProperties:
+                    type: string
+                  default: {}
+                  type: object
+                diskGiB:
+                  default: 40
+                  type: integer
+                memoryMiB:
+                  default: 8192
+                  type: integer
+                numCPUs:
+                  default: 2
+                  type: integer
+                numCoresPerSocket:
+                  default: 0
+                  type: integer
+              type: object
+            network:
+              properties:
+                mtu:
+                  type: integer
+                nameservers:
+                  default: []
+                  items:
+                    type: string
+                  type: array
+                searchDomains:
+                  default: []
+                  items:
+                    type: string
+                  type: array
+              type: object
+            nodeLabels:
+              default: []
+              items:
+                properties:
+                  key:
+                    type: string
+                  value:
+                    type: string
+                type: object
+              type: array
+          type: object
+    - name: controlPlaneCertificateRotation
+      required: false
+      schema:
+        openAPIV3Schema:
+          default:
+            activate: true
+            daysBefore: 90
+          description: ControlPlaneCertificateRotation defines how the rule the ControlPlane
+            certificates should be rotated.
+          example:
+            activate: true
+            daysBefore: 90
+          properties:
+            activate:
+              default: true
+              description: Activate indicates if the control plane certificate rotation
+                turned on/off.
+              type: boolean
+            daysBefore:
+              default: 90
+              description: DaysBefore the number of days when to trigger certificates
+                rotation.
+              format: int32
+              minimum: 7
+              type: integer
+          type: object
+    - name: controlPlaneKubeletExtraArgs
+      required: false
+      schema:
+        openAPIV3Schema:
+          additionalProperties:
+            type: string
+          default: {}
+          description: ControlPlaneKubeletExtraArgs defines model for ControlPlaneKubeletExtraArgs.
+          type: object
+    - name: controlPlaneTaint
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: true
+          description: ControlPlaneTaint defines model for ControlPlaneTaint.
+          type: boolean
+    - name: controlPlaneZoneMatchingLabels
+      required: false
+      schema:
+        openAPIV3Schema:
+          additionalProperties:
+            type: string
+          default: {}
+          description: ControlPlaneZoneMatchingLabels defines model for ControlPlaneZoneMatchingLabels.
+          type: object
+    - name: customTDNFRepository
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: CustomTDNFRepository defines model for CustomTDNFRepository.
+          properties:
+            certificate:
+              type: string
+          type: object
+    - name: etcdExtraArgs
+      required: false
+      schema:
+        openAPIV3Schema:
+          additionalProperties:
+            type: string
+          default: {}
+          description: EtcdExtraArgs defines model for EtcdExtraArgs.
+          type: object
+    - name: eventRateLimitConf
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: ""
+          description: EventRateLimitConf defines the EventRateLimitConf of the cluster.
+          type: string
+    - name: identityRef
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: IdentityRef defines model for IdentityRef.
+          properties:
+            kind:
+              type: string
+            name:
+              type: string
+          required:
+          - kind
+          - name
+          type: object
+    - name: imageRepository
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: ImageRepository defines model for ImageRepository.
+          properties:
+            host:
+              type: string
+            tlsCertificateValidation:
+              default: true
+              type: boolean
+          type: object
+    - name: kubeControllerManagerExtraArgs
+      required: false
+      schema:
+        openAPIV3Schema:
+          additionalProperties:
+            type: string
+          default: {}
+          description: KubeControllerManagerExtraArgs defines model for KubeControllerManagerExtraArgs.
+          type: object
+    - name: kubeSchedulerExtraArgs
+      required: false
+      schema:
+        openAPIV3Schema:
+          additionalProperties:
+            type: string
+          default: {}
+          description: KubeSchedulerExtraArgs defines model for KubeSchedulerExtraArgs.
+          type: object
+    - name: kubeVipLoadBalancerProvider
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: false
+          description: KubeVipLoadBalancerProvider defines model for KubeVipLoadBalancerProvider.
+          type: boolean
+    - name: network
+      required: false
+      schema:
+        openAPIV3Schema:
+          default:
+            ipv6Primary: false
+          description: KubeSchedulerExtraArgs defines model for KubeSchedulerExtraArgs.
+          properties:
+            addressesFromPools:
+              items:
+                description: Network defines model for Network.
+                properties:
+                  apiGroup:
+                    type: string
+                  kind:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - apiGroup
+                - kind
+                - name
+                type: object
+              type: array
+            dhcp4:
+              type: boolean
+            dhcp6:
+              type: boolean
+            ipv6Primary:
+              default: false
+              type: boolean
+          type: object
+    - name: nodePoolLabels
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: []
+          description: NodePoolLabels defines labels for NodePool.
+          items:
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+            type: object
+          type: array
+    - name: ntpServers
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: []
+          description: NtpServers defines model for NtpServers.
+          items:
+            type: string
+          type: array
+    - name: pci
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: PCI defines model for PCI.
+          properties:
+            controlPlane:
+              description: MachineWithPCIDevice
+              properties:
+                devices:
+                  default: []
+                  items:
+                    description: PCIDevice
+                    properties:
+                      deviceId:
+                        format: int32
+                        type: integer
+                      vendorId:
+                        format: int32
+                        type: integer
+                    required:
+                    - deviceId
+                    - vendorId
+                    type: object
+                  type: array
+                hardwareVersion:
+                  type: string
+              type: object
+            worker:
+              description: MachineWithPCIDevice
+              properties:
+                devices:
+                  default: []
+                  items:
+                    description: PCIDevice
+                    properties:
+                      deviceId:
+                        format: int32
+                        type: integer
+                      vendorId:
+                        format: int32
+                        type: integer
+                    required:
+                    - deviceId
+                    - vendorId
+                    type: object
+                  type: array
+                hardwareVersion:
+                  type: string
+              type: object
+          type: object
+    - name: podSecurityStandard
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: {}
+          description: PodSecurityStandard defines the PodSecurityStandard of the cluster.
+          properties:
+            audit:
+              description: Audit audit sets the level for the audit PodSecurityConfiguration
+                mode. One of "", privileged, baseline, restricted.
+              enum:
+              - ""
+              - privileged
+              - baseline
+              - restricted
+              type: string
+            auditVersion:
+              default: v1.24
+              description: AuditVersion auditVersion sets the version for the audit PodSecurityConfiguration
+                mode.
+              type: string
+            deactivated:
+              description: Deactivated deactivated disables the patches for Pod Security
+                Standard via AdmissionConfiguration.
+              type: boolean
+            enforce:
+              description: Enforce enforce sets the level for the enforce PodSecurityConfiguration
+                mode. One of "", privileged, baseline, restricted.
+              enum:
+              - ""
+              - privileged
+              - baseline
+              - restricted
+              type: string
+            enforceVersion:
+              default: v1.24
+              description: EnforceVersion enforceVersion sets the version for the enforce
+                PodSecurityConfiguration mode.
+              type: string
+            exemptions:
+              description: Exemptions exemption configuration for the PodSecurityConfiguration.
+              properties:
+                namespaces:
+                  description: Namespaces namespaces excluded to apply PodSecurityConfiguration
+                    Admission.
+                  items:
+                    type: string
+                  type: array
+              type: object
+            warn:
+              description: Warn warn sets the level for the warn PodSecurityConfiguration
+                mode. One of "", privileged, baseline, restricted.
+              enum:
+              - ""
+              - privileged
+              - baseline
+              - restricted
+              type: string
+            warnVersion:
+              default: v1.24
+              description: WarnVersion warnVersion sets the version for the warn PodSecurityConfiguration
+                mode.
+              type: string
+          type: object
+    - name: proxy
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: Proxy defines the proxy of the cluster.
+          properties:
+            httpProxy:
+              type: string
+            httpsProxy:
+              type: string
+            noProxy:
+              default: []
+              items:
+                type: string
+              type: array
+            systemWide:
+              default: false
+              type: boolean
+          required:
+          - httpProxy
+          - httpsProxy
+          type: object
+    - name: removeDefaultTDNFRepositoryFolder
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: false
+          description: RemoveDefaultTDNFRepositoryFolder defines model for RemoveDefaultTDNFRepositoryFolder.
+          type: boolean
+    - name: security
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: {}
+          description: Security defines model for Security.
+          properties:
+            fileIntegrityMonitoring:
+              default: {}
+              properties:
+                enabled:
+                  default: false
+                  description: Enabled Enable AIDE file integrity monitoring (Linux-only)
+                  type: boolean
+              type: object
+            imagePolicy:
+              default: {}
+              properties:
+                pullAlways:
+                  default: false
+                  description: PullAlways Always pull images
+                  type: boolean
+                webhook:
+                  default: {}
+                  properties:
+                    enabled:
+                      default: false
+                      description: Enabled Enable image policy webhook
+                      type: boolean
+                    spec:
+                      default: {}
+                      description: WebhookSpec
+                      properties:
+                        allowTTL:
+                          default: 50
+                          description: AllowTTL Time in seconds to cache the result of
+                            an image policy check
+                          minimum: 1
+                          type: integer
+                        caCert:
+                          description: CaCert CA certificate for the image policy webhook
+                            server
+                          type: string
+                        clientCert:
+                          description: ClientCert Client certificate for the image policy
+                            webhook server
+                          type: string
+                        clientKey:
+                          description: ClientKey Client key for the image policy webhook
+                            server
+                          type: string
+                        defaultAllow:
+                          default: true
+                          description: DefaultAllow Allow images that don't match any
+                            policy
+                          type: boolean
+                        denyTTL:
+                          default: 60
+                          description: DenyTTL Time in seconds to cache the result of
+                            an image policy check
+                          minimum: 1
+                          type: integer
+                        retryBackoff:
+                          default: 500
+                          description: RetryBackoff Time in seconds to wait before retrying
+                            the webhook
+                          minimum: 1
+                          type: integer
+                        server:
+                          description: Server URL of the image policy webhook server
+                          type: string
+                      type: object
+                  type: object
+              type: object
+            kubeletOptions:
+              default: {}
+              properties:
+                eventQPS:
+                  default: 50
+                  description: EventQPS Maximum QPS to use while sending events
+                  minimum: 0
+                  type: integer
+                streamConnectionIdleTimeout:
+                  default: 4h0m0s
+                  description: StreamConnectionIdleTimeout Idle timeout for streaming
+                    connections
+                  type: string
+              type: object
+            minimumTLSProtocol:
+              description: MinimumTLSProtocol TLS protocol version. Sets minimum supported
+                TLS versions
+              enum:
+              - tls_1.2
+              - tls_1.3
+              type: string
+            systemCryptoPolicy:
+              description: SystemCryptoPolicy System crypto policy. Sets the system-wide
+                and Kubernetes crypto policy.
+              enum:
+              - default
+              - fips
+              type: string
+          type: object
+    - name: tlsCipherSuites
+      required: false
+      schema:
+        openAPIV3Schema:
+          default: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+          description: TlsCipherSuites defines the cipher suites of the cluster.
+          type: string
+    - name: trust
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: Trust defines additional trusted CAs.
+          properties:
+            additionalTrustedCAs:
+              items:
+                description: AdditionalTrustedCA trusted ca name and data.
+                properties:
+                  data:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - data
+                - name
+                type: object
+              type: array
+          type: object
+    - name: user
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: User defines model for User.
+          properties:
+            sshAuthorizedKeys:
+              default: []
+              items:
+                type: string
+              type: array
+          type: object
+    - name: vcenter
+      required: true
+      schema:
+        openAPIV3Schema:
+          description: Vcenter defines model for Vcenter.
+          properties:
+            cloneMode:
+              default: fullClone
+              type: string
+            datacenter:
+              default: ""
+              type: string
+            datastore:
+              default: ""
+              type: string
+            folder:
+              default: ""
+              type: string
+            network:
+              default: VMNetwork
+              type: string
+            resourcePool:
+              default: ""
+              type: string
+            server:
+              default: ""
+              type: string
+            storagePolicyID:
+              default: ""
+              type: string
+            template:
+              default: ""
+              type: string
+            tlsThumbprint:
+              default: ""
+              type: string
+          required:
+          - datacenter
+          - datastore
+          - folder
+          - resourcePool
+          - server
+          type: object
+    - name: vipNetworkInterface
+      required: true
+      schema:
+        openAPIV3Schema:
+          default: eth0
+          type: string
+    - name: worker
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: Worker defines model for Worker.
+          properties:
+            machine:
+              properties:
+                customVMXKeys:
+                  additionalProperties:
+                    type: string
+                  default: {}
+                  type: object
+                diskGiB:
+                  default: 40
+                  type: integer
+                memoryMiB:
+                  default: 4096
+                  type: integer
+                numCPUs:
+                  default: 2
+                  type: integer
+                numCoresPerSocket:
+                  default: 0
+                  type: integer
+              type: object
+            network:
+              properties:
+                mtu:
+                  type: integer
+                nameservers:
+                  default: []
+                  items:
+                    type: string
+                  type: array
+                searchDomains:
+                  default: []
+                  items:
+                    type: string
+                  type: array
+              type: object
+          type: object
+    - name: workerKubeletExtraArgs
+      required: false
+      schema:
+        openAPIV3Schema:
+          additionalProperties:
+            type: string
+          default: {}
+          description: WorkerKubeletExtraArgs defines model for WorkerKubeletExtraArgs.
+          type: object
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VSphereClusterTemplate
+metadata:
+  name: tkg-vsphere-default-v1.2.0-cluster
+  namespace: tkg-system
+spec:
+  template:
+    spec:
+      controlPlaneEndpoint:
+        host: ""
+        port: 6443
+      server: vc01.h2o-4-24540.h2o.vmware.com
+      thumbprint: ""
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VSphereMachineTemplate
+metadata:
+  name: tkg-vsphere-default-v1.2.0-control-plane
+  namespace: tkg-system
+spec:
+  template:
+    spec:
+      cloneMode: fullClone
+      datacenter: /vc01
+      datastore: /vc01/datastore/vsanDatastore
+      storagePolicyName: ""
+      diskGiB: 40
+      folder: /vc01/vm
+      memoryMiB: 8192
+      network:
+        devices:
+        - networkName: /vc01/network/user-workload
+      numCPUs: 2
+      numCoresPerSocket: 0
+      resourcePool: /vc01/host/vc01cl01/Resources
+      server: vc01.h2o-4-24540.h2o.vmware.com
+      template: ' '
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VSphereMachineTemplate
+metadata:
+  name: tkg-vsphere-default-v1.2.0-worker
+  namespace: tkg-system
+spec:
+  template:
+    spec:
+      cloneMode: fullClone
+      datacenter: /vc01
+      datastore: /vc01/datastore/vsanDatastore
+      storagePolicyName: ""
+      diskGiB: 40
+      folder: /vc01/vm
+      memoryMiB: 8192
+      network:
+        devices:
+        - networkName: /vc01/network/user-workload
+      numCPUs: 2
+      numCoresPerSocket: 0
+      resourcePool: /vc01/host/vc01cl01/Resources
+      server: vc01.h2o-4-24540.h2o.vmware.com
+      template: ' '
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlaneTemplate
+metadata:
+  name: tkg-vsphere-default-v1.2.0-kcp
+  namespace: tkg-system
+spec:
+  template:
+    spec:
+      kubeadmConfigSpec:
+        clusterConfiguration:
+          imageRepository: dummy.registry.vmware.com
+          etcd:
+            local:
+              dataDir: /var/lib/etcd
+              imageRepository: dummy.registry.vmware.com
+              imageTag: 1.8.4_dummy.5
+              extraArgs: {}
+          dns:
+            imageRepository: dummy.registry.vmware.com
+            imageTag: 1.8.4_dummy.5
+          apiServer:
+            timeoutForControlPlane: 8m0s
+            extraVolumes: []
+            extraArgs: {}
+          controllerManager:
+            extraArgs: {}
+          scheduler:
+            extraArgs: {}
+        files:
+        - path: /tmp/empty.txt
+          owner: root:root
+          permissions: "0600"
+          content: |
+            default file
+        initConfiguration:
+          nodeRegistration:
+            criSocket: /var/run/containerd/containerd.sock
+            kubeletExtraArgs: {}
+            name: '{{ ds.meta_data.hostname }}'
+        joinConfiguration:
+          nodeRegistration:
+            criSocket: /var/run/containerd/containerd.sock
+            kubeletExtraArgs: {}
+            name: '{{ ds.meta_data.hostname }}'
+        preKubeadmCommands:
+        - hostname "{{ ds.meta_data.hostname }}"
+        - echo "::1         ipv6-localhost ipv6-loopback" >/etc/hosts
+        - echo "127.0.0.1   localhost" >>/etc/hosts
+        - echo "127.0.0.1   {{ ds.meta_data.hostname }}" >>/etc/hosts
+        - echo "{{ ds.meta_data.hostname }}" >/etc/hostname
+        postKubeadmCommands:
+        - echo "running postKubeadmCommands..."
+        users:
+        - name: capv
+          sshAuthorizedKeys:
+          - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC9250SBMBdbu6iWejfmq5cLnuqy8oRPtIuHVju07ttIE6FgkQXWtdJMnORP44uRpSsppQtacgN5a+OnIT5ZOU40NArEDfEJTkXrb6YgsWRzTAOzFapcxSAc/XfMGMxAgJhSxxhKNrbmgWP5IBozbYqaKkP+3Rjg8mNeIpmzcPyCw9pVCGSS8wjFPIZWL+0RpSrc7KmQfFxbUpeH91DchFHkujSOVLP6Sf4Qm4LxPN3V7GIU/HAK+UL7lDcpRwvJMaVIGrlly9mt0qWCPtdm26ykoplh9cQGLSJXlIesPnrW88H0BnIytCthU2107pVaVoOJlqkBdaLd0fm3hE8MwbZ
+          sudo: ALL=(ALL) NOPASSWD:ALL
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: tkg-vsphere-default-v1.2.0-md-config
+  namespace: tkg-system
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          criSocket: /var/run/containerd/containerd.sock
+          kubeletExtraArgs: {}
+          name: '{{ ds.meta_data.hostname }}'
+      preKubeadmCommands:
+      - hostname "{{ ds.meta_data.hostname }}"
+      - echo "::1         ipv6-localhost ipv6-loopback" >/etc/hosts
+      - echo "127.0.0.1   localhost" >>/etc/hosts
+      - echo "127.0.0.1   {{ ds.meta_data.hostname }}" >>/etc/hosts
+      - echo "{{ ds.meta_data.hostname }}" >/etc/hostname
+      postKubeadmCommands:
+      - echo "running postKubeadmCommands..."
+      files:
+      - path: /tmp/empty.txt
+        owner: root:root
+        permissions: "0600"
+        content: |
+          default file
+      users:
+      - name: capv
+        sshAuthorizedKeys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC9250SBMBdbu6iWejfmq5cLnuqy8oRPtIuHVju07ttIE6FgkQXWtdJMnORP44uRpSsppQtacgN5a+OnIT5ZOU40NArEDfEJTkXrb6YgsWRzTAOzFapcxSAc/XfMGMxAgJhSxxhKNrbmgWP5IBozbYqaKkP+3Rjg8mNeIpmzcPyCw9pVCGSS8wjFPIZWL+0RpSrc7KmQfFxbUpeH91DchFHkujSOVLP6Sf4Qm4LxPN3V7GIU/HAK+UL7lDcpRwvJMaVIGrlly9mt0qWCPtdm26ykoplh9cQGLSJXlIesPnrW88H0BnIytCthU2107pVaVoOJlqkBdaLd0fm3hE8MwbZ
+        sudo: ALL=(ALL) NOPASSWD:ALL
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: ClusterClass
+metadata:
+  name: tkg-vsphere-default-v1.2.0
+  namespace: tkg-system
+  annotations:
+    run.tanzu.vmware.com/resolve-tkr: ""
+spec:
+  controlPlane:
+    ref:
+      apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+      kind: KubeadmControlPlaneTemplate
+      name: tkg-vsphere-default-v1.2.0-kcp
+      namespace: tkg-system
+    machineInfrastructure:
+      ref:
+        kind: VSphereMachineTemplate
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        name: tkg-vsphere-default-v1.2.0-control-plane
+        namespace: tkg-system
+    namingStrategy:
+      template: '{{ .cluster.name }}-controlplane-{{ .random }}'
+    machineHealthCheck:
+      maxUnhealthy: 100%
+      nodeStartupTimeout: 20m
+      unhealthyConditions:
+      - type: Ready
+        status: Unknown
+        timeout: 5m
+      - type: Ready
+        status: "False"
+        timeout: 12m
+  infrastructure:
+    ref:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: VSphereClusterTemplate
+      name: tkg-vsphere-default-v1.2.0-cluster
+      namespace: tkg-system
+  workers:
+    machineDeployments:
+    - class: tkg-worker
+      template:
+        bootstrap:
+          ref:
+            kind: KubeadmConfigTemplate
+            apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+            name: tkg-vsphere-default-v1.2.0-md-config
+            namespace: tkg-system
+        infrastructure:
+          ref:
+            kind: VSphereMachineTemplate
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            name: tkg-vsphere-default-v1.2.0-worker
+            namespace: tkg-system
+      machineHealthCheck:
+        maxUnhealthy: 100%
+        nodeStartupTimeout: 20m
+        unhealthyConditions:
+        - type: Ready
+          status: Unknown
+          timeout: 5m
+        - type: Ready
+          status: "False"
+          timeout: 12m
+    - class: tkg-worker-windows
+      template:
+        bootstrap:
+          ref:
+            kind: KubeadmConfigTemplate
+            apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+            name: tkg-vsphere-default-v1.2.0-md-config
+            namespace: tkg-system
+        infrastructure:
+          ref:
+            kind: VSphereMachineTemplate
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            name: tkg-vsphere-default-v1.2.0-worker
+            namespace: tkg-system
+      machineHealthCheck:
+        maxUnhealthy: 100%
+        nodeStartupTimeout: 20m
+        unhealthyConditions:
+        - type: Ready
+          status: Unknown
+          timeout: 5m
+        - type: Ready
+          status: "False"
+          timeout: 12m
+  patches:
+  - external:
+      discoverVariablesExtension: discover-variables.tkg-runtime-extension
+      generateExtension: generate-patches.tkg-runtime-extension
+      validateExtension: validate-topology.tkg-runtime-extension
+      settings:
+        flavor: tkg
+        version: v1.2.0
+    name: tkg-official-patch
