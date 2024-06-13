@@ -1,0 +1,47 @@
+#@ load("@ytt:overlay", "overlay")
+
+#@overlay/match by=overlay.subset({"kind":"ClusterClass"})
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: ClusterClass
+metadata:
+  name: tkg-vsphere-default-v1.2.0-extended
+spec:
+  #@overlay/match missing_ok=True
+  variables:
+  #@overlay/append
+    - name: taints
+      required: false
+      schema:
+        openAPIV3Schema:
+          description: |
+            Node Taints to add during node join.
+            https://kubernetes.io/docs/reference/config-api/kubeadm-config.v1beta4/#kubeadm-k8s-io-v1beta4-NodeRegistrationOptions
+          items:
+            properties:
+              effect:
+                type: string
+              key:
+                type: string
+              value:
+                type: string
+            type: object
+          type: array
+  #@overlay/match expects=1
+  patches:
+    - definitions:
+        - name: taints
+          enabledIf: '{{ not (empty .taints) }}'
+          jsonPatches:
+            - op: add
+              path: /spec/template/spec/joinConfiguration/nodeRegistration/taints
+              valueFrom:
+                variable: taints
+          selector:
+            apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+            kind: KubeadmConfigTemplate
+            matchResources:
+              machineDeploymentClass:
+                names:
+                  - tkg-worker
+      

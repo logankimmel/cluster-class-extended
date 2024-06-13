@@ -1,0 +1,78 @@
+#@ load("@ytt:overlay", "overlay")
+
+#@overlay/match by=overlay.subset({"kind":"ClusterClass"})
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: ClusterClass
+metadata:
+  name: tkg-vsphere-default-v1.2.0-extended
+spec:
+  #@overlay/match missing_ok=True
+  variables:
+  #@overlay/append
+  - name: customPools
+    required: false
+    schema:
+      openAPIV3Schema:
+        type: string
+        description: "Use custom IP Pools and networks based on nodepool name"
+  #@overlay/match expects=1
+  patches:
+  - name: controlplane
+    enabledIf: '{{ .customPools }}'
+    definitions:
+      - jsonPatches:
+            - op: replace
+              path: /spec/template/spec/network/devices
+              valueFrom:
+                template: |
+                  - addressesFromPools:
+                    - apiGroup: ipam.cluster.x-k8s.io
+                      kind: InClusterIPPool
+                      name: '{{ .builtin.cluster.name }}-mst-clusterippool'
+                    mtu: 8800
+                    nameservers:
+                    - 10.0.0.100
+                    - 10.208.0.140
+                    networkName: '{{ .vsphereNetworkName }}'
+        selector:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: VSphereMachineTemplate
+            matchResources:
+              controlPlane: true
+  - name: worker
+    enabledIf: '{{ .customPools }}'
+    definitions:
+      - jsonPatches:
+          - op: replace
+            path: /spec/template/spec/network/devices
+            valueFrom:
+              template: |
+                - addressesFromPools:
+                  - apiGroup: ipam.cluster.x-k8s.io
+                    kind: InClusterIPPool
+                    name: '{{ .builtin.cluster.name }}-{{ .builtin.machineDeployment.topologyName }}-clusterippool'
+                  mtu: 8800
+                  nameservers:
+                  - 10.0.0.100
+                  - 10.208.0.140
+                  networkName: '{{ .vsphereNetworkName }}'
+          - op: replace
+            path: /spec/template/spec/numCPUs
+            valueFrom:
+              variable: node-vcpus
+          - op: replace
+            path: /spec/template/spec/memoryMiB
+            valueFrom:
+              variable: node-memory
+          - op: replace
+            path: /spec/template/spec/diskGiB
+            valueFrom:
+              variable: node-disk
+        selector:
+          apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+          kind: VSphereMachineTemplate
+          matchResources:
+            machineDeploymentClass:
+              names:
+                - tkg-worker
